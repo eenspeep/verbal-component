@@ -59,6 +59,8 @@ export interface Settings {
   minDurationSec: number;
   maxDurationSec: number;
   minViews: number;
+  /** Include only tracks matching at least one of these keywords (empty = all). */
+  tags: string[];
   /** Start playing the top card automatically when it lands. */
   autoplay: boolean;
   /** Playback volume, 0–100. */

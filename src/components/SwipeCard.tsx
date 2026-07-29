@@ -19,6 +19,10 @@ interface Props {
   autoplay: boolean;
   /** Playback volume, 0–100. */
   volume: number;
+  /** Whether a "Yes" has a playlist to file into. If not, a right-swipe defers. */
+  yesEnabled: boolean;
+  /** Called when a "Yes" is attempted with no active playlist. */
+  onNeedTarget: () => void;
   onSwipe: (dir: SwipeDir, sample: Sample) => void;
 }
 
@@ -35,7 +39,17 @@ function dirFrom(x: number, y: number): SwipeDir | null {
   return null;
 }
 
-export default function SwipeCard({ sample, active, depth, trigger, autoplay, volume, onSwipe }: Props) {
+export default function SwipeCard({
+  sample,
+  active,
+  depth,
+  trigger,
+  autoplay,
+  volume,
+  yesEnabled,
+  onNeedTarget,
+  onSwipe,
+}: Props) {
   const playable = sample.source === "live";
   const [drag, setDrag] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
@@ -77,7 +91,11 @@ export default function SwipeCard({ sample, active, depth, trigger, autoplay, vo
     setDragging(false);
     startRef.current = null;
     const dir = dirFrom(drag.x, drag.y);
-    if (dir) {
+    if (dir === "yes" && !yesEnabled) {
+      // No playlist selected yet — spring back and prompt to pick/create one.
+      setDrag({ x: 0, y: 0 });
+      onNeedTarget();
+    } else if (dir) {
       flyOut(dir);
     } else {
       setDrag({ x: 0, y: 0 });

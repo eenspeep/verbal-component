@@ -21,6 +21,17 @@ export default function SettingsPanel({
 }: Props) {
   const [connecting, setConnecting] = useState(false);
   const [connectError, setConnectError] = useState<string | null>(null);
+  const [tagDraft, setTagDraft] = useState("");
+
+  function addTag() {
+    const t = tagDraft.trim().toLowerCase();
+    setTagDraft("");
+    if (!t || settings.tags.some((x) => x.toLowerCase() === t)) return;
+    onChange({ tags: [...settings.tags, t] });
+  }
+  function removeTag(tag: string) {
+    onChange({ tags: settings.tags.filter((t) => t !== tag) });
+  }
 
   // Local draft for the filter sliders — committed to global settings on
   // release, so live mode doesn't re-fetch on every drag tick.
@@ -134,6 +145,42 @@ export default function SettingsPanel({
             />
             Auto-add “Yes” &amp; “Sort” to YouTube instantly (otherwise sync per playlist on demand)
           </label>
+        </section>
+
+        <section className="settings__card">
+          <h3>Tags <span className="settings__opt">(keyword filter)</span></h3>
+          <p className="settings__hint">
+            When set, the deck only shows tracks matching <em>at least one</em> tag
+            (checked against the title, description &amp; auto-keywords). Leave empty for
+            everything.
+          </p>
+          {settings.tags.length > 0 && (
+            <div className="tagchips">
+              {settings.tags.map((t) => (
+                <button key={t} className="tagchip" onClick={() => removeTag(t)} title="Remove tag">
+                  {t} <span className="tagchip__x">×</span>
+                </button>
+              ))}
+            </div>
+          )}
+          <form
+            className="tagform"
+            onSubmit={(e) => {
+              e.preventDefault();
+              addTag();
+            }}
+          >
+            <input
+              className="settings__input"
+              value={tagDraft}
+              onChange={(e) => setTagDraft(e.target.value)}
+              placeholder="Add a keyword — e.g. tavern, boss, choir…"
+              autoComplete="off"
+            />
+            <button className="tagform__add" type="submit" disabled={!tagDraft.trim()}>
+              Add
+            </button>
+          </form>
         </section>
 
         <section className="settings__card">

@@ -11,13 +11,27 @@ export interface FilterThresholds {
   minDurationSec: number;
   maxDurationSec: number;
   minViews: number;
+  /** Include only tracks matching at least one of these keywords (empty = all). */
+  tags: string[];
 }
 
 export const DEFAULT_FILTERS: FilterThresholds = {
   minDurationSec: DEFAULT_MIN_DURATION_SEC,
   maxDurationSec: DEFAULT_MAX_DURATION_SEC,
   minViews: DEFAULT_MIN_VIEWS,
+  tags: [],
 };
+
+/** True if no tags are set, or the sample matches at least one (case-insensitive). */
+export function matchesTags(sample: Sample, tags: string[]): boolean {
+  if (tags.length === 0) return true;
+  const hay =
+    `${sample.title} ${sample.description} ${sample.keywords.join(" ")} ${sample.category}`.toLowerCase();
+  return tags.some((t) => {
+    const q = t.trim().toLowerCase();
+    return q.length > 0 && hay.includes(q);
+  });
+}
 
 /** Parse an ISO-8601 duration (e.g. "PT4M13S", "PT1H2M", "PT45S") to seconds. */
 export function parseIsoDuration(iso: string | undefined): number {
@@ -28,12 +42,13 @@ export function parseIsoDuration(iso: string | undefined): number {
   return (+(d || 0)) * 86400 + (+(h || 0)) * 3600 + (+(min || 0)) * 60 + +(s || 0);
 }
 
-/** True when a sample is inside the duration window and above the view floor. */
+/** True when a sample clears the duration, view, and tag filters. */
 export function passesFilters(sample: Sample, f: FilterThresholds): boolean {
   return (
     sample.durationSec >= f.minDurationSec &&
     sample.durationSec <= f.maxDurationSec &&
-    sample.viewCount >= f.minViews
+    sample.viewCount >= f.minViews &&
+    matchesTags(sample, f.tags)
   );
 }
 

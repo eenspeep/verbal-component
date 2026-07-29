@@ -54,7 +54,7 @@ const DESC_SNIPPETS = [
  * Deterministically fabricate a demo sample for a category + index. The index
  * lets the feed generate an effectively endless, non-repeating stream.
  */
-export function makeDemoSample(category: string, index: number): Sample {
+export function makeDemoSample(category: string, index: number, tags: string[] = []): Sample {
   const catSeed = [...category.toLowerCase()].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
   const rng = mulberry32((catSeed ^ (index * 2654435761)) >>> 0);
 
@@ -65,7 +65,12 @@ export function makeDemoSample(category: string, index: number): Sample {
   const channel = pick(rng, CHANNELS);
 
   const title = `${catCap} ${scene} — ${descriptor}`;
-  const description = pick(rng, DESC_SNIPPETS);
+  // When tags are set, weave one into the description so a chunk of demo cards
+  // match the tag filter and the deck keeps flowing.
+  const tag = tags.length ? pick(rng, tags) : null;
+  const description = tag
+    ? `${pick(rng, DESC_SNIPPETS)} Tagged: ${tag}.`
+    : pick(rng, DESC_SNIPPETS);
 
   // Synthetic length/views: mostly inside the 2–10 min / 500k+ window so the
   // deck flows, with a minority outside it so the filters are visibly at work.

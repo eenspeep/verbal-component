@@ -78,9 +78,17 @@ export function useFeed({ category, mode, apiKey, isSeen, filters }: Options): F
     setExhausted(false);
     setError(null);
     void refill();
-    // Rebuild when the category, mode, key, or any filter threshold changes.
+    // Rebuild when the category, mode, key, or any filter (incl. tags) changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, mode, apiKey, filters.minDurationSec, filters.maxDurationSec, filters.minViews]);
+  }, [
+    category,
+    mode,
+    apiKey,
+    filters.minDurationSec,
+    filters.maxDurationSec,
+    filters.minViews,
+    filters.tags.join(","),
+  ]);
 
   // Top up the buffer whenever it runs low.
   useEffect(() => {

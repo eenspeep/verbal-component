@@ -60,13 +60,6 @@ export function emojiForCategory(name: string): string {
   return "🎵";
 }
 
-function titleCase(s: string): string {
-  return s
-    .split(/\s+/)
-    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
-    .join(" ");
-}
-
 let idCounter = 0;
 function newId(): string {
   idCounter += 1;
@@ -88,32 +81,10 @@ export function reducer(state: AppState, action: Action): AppState {
         category: "",
       };
 
-    case "setCategory": {
-      const category = action.category.trim();
-      if (!category) return { ...state, category };
-
-      // Reuse an existing same-named playlist, else create one for the category.
-      const existing = state.playlists.find(
-        (p) => p.name.toLowerCase() === category.toLowerCase(),
-      );
-      if (existing) {
-        return { ...state, category, activePlaylistId: existing.id };
-      }
-      const playlist: Playlist = {
-        id: newId(),
-        name: titleCase(category),
-        emoji: emojiForCategory(category),
-        createdAt: Date.now(),
-        items: [],
-        syncedVideoIds: [],
-      };
-      return {
-        ...state,
-        category,
-        playlists: [...state.playlists, playlist],
-        activePlaylistId: playlist.id,
-      };
-    }
+    case "setCategory":
+      // Searching only changes the feed. Playlists are created/selected
+      // explicitly via the playlist rail, so we no longer spawn one per search.
+      return { ...state, category: action.category.trim() };
 
     case "decide": {
       const { sample, kind } = action;
@@ -159,6 +130,8 @@ export function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         playlists: [...state.playlists, playlist],
+        // A freshly made playlist becomes the active "Yes" target.
+        activePlaylistId: playlist.id,
         seen: withSeen(state, sample.videoId),
         decided: withDecided(state, sample.videoId),
         thinking: state.thinking.filter((t) => t.videoId !== sample.videoId),

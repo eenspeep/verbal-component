@@ -69,7 +69,7 @@ export class Feed {
     let guard = 0;
     while (out.length < count && guard < count * 40) {
       guard++;
-      const s = makeDemoSample(this.category, this.demoIndex++);
+      const s = makeDemoSample(this.category, this.demoIndex++, this.deps.filters.tags);
       if (!this.deps.isSeen(s.videoId) && passesFilters(s, this.deps.filters)) out.push(s);
     }
     return out;
@@ -82,7 +82,11 @@ export class Feed {
     while (out.length < minCount && safety < 8 && !this.isExhausted) {
       safety++;
       const suffix = QUERY_SUFFIXES[this.suffixIndex];
-      const query = `${this.category} ${suffix}`.trim();
+      // Fold in one tag (rotating) when tags are set, so live results skew toward
+      // tagged content and post-filtering discards fewer (protects search quota).
+      const tags = this.deps.filters.tags;
+      const tagPart = tags.length ? ` ${tags[this.suffixIndex % tags.length]}` : "";
+      const query = `${this.category}${tagPart} ${suffix}`.trim();
 
       let page;
       try {

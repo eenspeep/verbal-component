@@ -19,6 +19,7 @@ interface Props {
   onDecide: (dir: SwipeDir, sample: Sample) => void;
   onSortInto: (sample: Sample, playlistId: string) => void;
   onSortToNew: (sample: Sample, name: string) => void;
+  onSetActive: (id: string) => void;
 }
 
 const VISIBLE = 3;
@@ -38,10 +39,24 @@ export default function CardDeck({
   onDecide,
   onSortInto,
   onSortToNew,
+  onSetActive,
 }: Props) {
   const [trigger, setTrigger] = useState<SwipeDir | null>(null);
   const [sortOpen, setSortOpen] = useState(false);
+  // Why the sort sheet opened: a one-off "sort", or a "yes" with no target yet
+  // (in which case the picked/created playlist also becomes the active target).
+  const [sortReason, setSortReason] = useState<"sort" | "yes">("sort");
   const lastVolume = useRef(volume || 70);
+
+  const hasTarget = !!activePlaylistId;
+  function openSort(reason: "sort" | "yes") {
+    setSortReason(reason);
+    setSortOpen(true);
+  }
+  function requestYes() {
+    if (hasTarget) setTrigger("yes");
+    else openSort("yes");
+  }
 
   function toggleMute() {
     if (volume > 0) {
@@ -62,10 +77,10 @@ export default function CardDeck({
       if (sortOpen || !top) return;
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
-      if (e.key === "ArrowRight") setTrigger("yes");
+      if (e.key === "ArrowRight") requestYes();
       else if (e.key === "ArrowLeft") setTrigger("no");
       else if (e.key === "ArrowUp") setTrigger("thinking");
-      else if (e.key.toLowerCase() === "s") setSortOpen(true);
+      else if (e.key.toLowerCase() === "s") openSort("sort");
       else return;
       // Stop the key from also scrolling the page or leaking into the
       // sort sheet's auto-focused input.
@@ -73,7 +88,8 @@ export default function CardDeck({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [top, sortOpen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [top, sortOpen, hasTarget]);
 
   function handleSwipe(dir: SwipeDir, sample: Sample) {
     setTrigger(null);
@@ -129,6 +145,8 @@ export default function CardDeck({
             trigger={i === 0 ? trigger : null}
             autoplay={autoplay}
             volume={volume}
+            yesEnabled={hasTarget}
+            onNeedTarget={() => openSort("yes")}
             onSwipe={handleSwipe}
           />
         )).reverse()}
@@ -163,8 +181,8 @@ export default function CardDeck({
         <ActionBar
           onNo={() => setTrigger("no")}
           onThinking={() => setTrigger("thinking")}
-          onSort={() => setSortOpen(true)}
-          onYes={() => setTrigger("yes")}
+          onSort={() => openSort("sort")}
+          onYes={requestYes}
           activePlaylistName={activePlaylist?.name ?? null}
         />
       )}
@@ -176,6 +194,7 @@ export default function CardDeck({
           activePlaylistId={activePlaylistId}
           onPick={(playlistId) => {
             setSortOpen(false);
+            if (sortReason === "yes") onSetActive(playlistId);
             onSortInto(top, playlistId);
           }}
           onCreate={(name) => {

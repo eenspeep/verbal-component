@@ -10,6 +10,7 @@ import type { SwipeDir } from "./components/SwipeCard";
 import TopBar, { type View } from "./components/TopBar";
 import CategoryBar from "./components/CategoryBar";
 import CardDeck from "./components/CardDeck";
+import PlaylistRail from "./components/PlaylistRail";
 import PlaylistPanel from "./components/PlaylistPanel";
 import ThinkingPanel from "./components/ThinkingPanel";
 import SettingsPanel from "./components/SettingsPanel";
@@ -54,6 +55,7 @@ export default function App() {
       minDurationSec: settings.minDurationSec,
       maxDurationSec: settings.maxDurationSec,
       minViews: settings.minViews,
+      tags: settings.tags,
     },
   });
 
@@ -182,22 +184,33 @@ export default function App() {
         {view === "swipe" && (
           <>
             <CategoryBar category={state.category} onSearch={onSearch} />
-            <CardDeck
-              buffer={feed.buffer}
-              playlists={state.playlists}
-              activePlaylistId={state.activePlaylistId}
-              category={state.category}
-              error={feed.error}
-              exhausted={feed.exhausted}
-              autoplay={settings.autoplay}
-              volume={settings.volume}
-              onAutoplayChange={(v) => setSettings((s) => ({ ...s, autoplay: v }))}
-              onVolumeChange={(v) => setSettings((s) => ({ ...s, volume: v }))}
-              onRetry={feed.retry}
-              onDecide={handleDecide}
-              onSortInto={handleSortInto}
-              onSortToNew={handleSortToNew}
-            />
+            <div className="swipe-layout">
+              <PlaylistRail
+                playlists={state.playlists}
+                activePlaylistId={state.activePlaylistId}
+                onSelect={(id) => dispatch({ type: "setActivePlaylist", playlistId: id })}
+                onCreate={(name) => dispatch({ type: "createPlaylist", name, activate: true })}
+              />
+              <div className="swipe-main">
+                <CardDeck
+                  buffer={feed.buffer}
+                  playlists={state.playlists}
+                  activePlaylistId={state.activePlaylistId}
+                  category={state.category}
+                  error={feed.error}
+                  exhausted={feed.exhausted}
+                  autoplay={settings.autoplay}
+                  volume={settings.volume}
+                  onAutoplayChange={(v) => setSettings((s) => ({ ...s, autoplay: v }))}
+                  onVolumeChange={(v) => setSettings((s) => ({ ...s, volume: v }))}
+                  onRetry={feed.retry}
+                  onDecide={handleDecide}
+                  onSortInto={handleSortInto}
+                  onSortToNew={handleSortToNew}
+                  onSetActive={(id) => dispatch({ type: "setActivePlaylist", playlistId: id })}
+                />
+              </div>
+            </div>
           </>
         )}
 

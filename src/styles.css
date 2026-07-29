@@ -215,6 +215,132 @@ button {
 }
 
 /* ---------------- Deck ---------------- */
+/* ---------------- Swipe layout + playlist rail ---------------- */
+.swipe-layout {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.swipe-main {
+  flex: 1;
+  min-width: 0;
+}
+.rail {
+  width: 132px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 72vh;
+}
+.rail__title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--faint);
+  font-weight: 800;
+}
+.rail__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+.rail__empty {
+  font-size: 12px;
+  color: var(--faint);
+  line-height: 1.4;
+  margin: 0;
+}
+.rail__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px;
+  text-align: left;
+  color: var(--text);
+}
+.rail__item--active {
+  border-color: var(--gold);
+  background: linear-gradient(150deg, rgba(232, 201, 121, 0.14), rgba(232, 201, 121, 0.05));
+}
+.rail__emoji {
+  font-size: 15px;
+}
+.rail__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rail__count {
+  font-size: 11px;
+  color: var(--faint);
+  font-weight: 700;
+}
+.rail__create {
+  display: flex;
+  gap: 6px;
+}
+.rail__input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 8px;
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+}
+.rail__input:focus {
+  border-color: var(--purple);
+}
+.rail__add {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 8px;
+  width: 32px;
+  font-size: 16px;
+  font-weight: 700;
+}
+.rail__add:disabled {
+  opacity: 0.5;
+}
+
+@media (max-width: 519px) {
+  .swipe-layout {
+    flex-direction: column;
+  }
+  .rail {
+    width: 100%;
+    max-height: none;
+  }
+  .rail__list {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 2px;
+  }
+  .rail__item {
+    flex: 0 0 auto;
+  }
+  .rail__name {
+    max-width: 110px;
+  }
+}
+
 .deck-wrap {
   display: flex;
   flex-direction: column;
@@ -1048,6 +1174,42 @@ button {
 }
 .settings__card--danger {
   border-color: rgba(255, 93, 108, 0.3);
+}
+
+.tagchips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.tagchip {
+  background: linear-gradient(150deg, rgba(139, 108, 240, 0.22), rgba(109, 79, 214, 0.16));
+  border: 1px solid rgba(139, 108, 240, 0.45);
+  color: #d9ceff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.tagchip__x {
+  opacity: 0.7;
+  margin-left: 2px;
+}
+.tagform {
+  display: flex;
+  gap: 8px;
+}
+.tagform__add {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 0 16px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.tagform__add:disabled {
+  opacity: 0.5;
 }
 
 .slider {
