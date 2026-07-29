@@ -2,6 +2,7 @@ import type { Sample } from "../types";
 import { searchVideos } from "./youtube";
 import { makeDemoSample } from "./demoData";
 import { passesFilters, type FilterThresholds } from "./filters";
+import { staticFeedSlug, loadStaticFeed } from "./feed-static";
 
 // The Feed produces an effectively endless stream of samples for a category.
 // In demo mode it fabricates cards on the fly. In live mode it cycles through a
@@ -48,20 +49,44 @@ export class Feed {
   private pageToken: string | undefined = undefined;
   private exhaustedRounds = 0;
 
+  // Static-feed state. `undefined` = not yet checked; an array = a pre-built pool
+  // is serving this category (zero live quota); `null` = no static feed exists.
+  private staticPool: Sample[] | null | undefined = undefined;
+  private staticCursor = 0;
+  private staticDone = false;
+
   constructor(category: string, deps: FeedDeps) {
     this.category = category;
     this.deps = deps;
   }
 
-  /** True in live mode once the category appears fully mined for now. */
+  /** True once the current source is fully mined for now. */
   get isExhausted(): boolean {
+    if (this.staticPool) return this.staticDone;
     return this.deps.mode === "live" && this.exhaustedRounds >= 2;
   }
 
   /** Fetch the next batch of unseen samples. Returns [] only if truly dry. */
   async loadMore(minCount = 6): Promise<Sample[]> {
+    // Prefer a pre-built static feed (real, playable, no live quota) if one exists.
+    if (this.staticPool === undefined) {
+      const slug = await staticFeedSlug(this.category);
+      this.staticPool = slug ? await loadStaticFeed(slug) : null;
+    }
+    if (this.staticPool) return this.loadStatic(minCount);
     if (this.deps.mode === "demo") return this.loadDemo(minCount);
     return this.loadLive(minCount);
+  }
+
+  private loadStatic(count: number): Sample[] {
+    const pool = this.staticPool!;
+    const out: Sample[] = [];
+    while (out.length < count && this.staticCursor < pool.length) {
+      const s = pool[this.staticCursor++];
+      if (!this.deps.isSeen(s.videoId) && passesFilters(s, this.deps.filters)) out.push(s);
+    }
+    if (this.staticCursor >= pool.length) this.staticDone = true;
+    return out;
   }
 
   private loadDemo(count: number): Sample[] {
