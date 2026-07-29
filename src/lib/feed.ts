@@ -82,11 +82,10 @@ export class Feed {
     while (out.length < minCount && safety < 8 && !this.isExhausted) {
       safety++;
       const suffix = QUERY_SUFFIXES[this.suffixIndex];
-      // Fold in one tag (rotating) when tags are set, so live results skew toward
-      // tagged content and post-filtering discards fewer (protects search quota).
-      const tags = this.deps.filters.tags;
-      const tagPart = tags.length ? ` ${tags[this.suffixIndex % tags.length]}` : "";
-      const query = `${this.category}${tagPart} ${suffix}`.trim();
+      // Tags are applied purely as a post-filter (in passesFilters), NOT folded
+      // into the query, so changing tags reuses the cached category pages for the
+      // same query instead of spending fresh search quota on every tweak.
+      const query = `${this.category} ${suffix}`.trim();
 
       let page;
       try {

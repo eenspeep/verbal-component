@@ -11,10 +11,11 @@ const API = "https://www.googleapis.com/youtube/v3";
 // --- Response cache -------------------------------------------------------
 // GET responses (search + video details) are cached in localStorage so that
 // reloading, re-browsing a category, or re-filtering doesn't re-spend the
-// (limited) daily search quota. Quota resets daily, so a 12h TTL is safe.
+// (limited) daily search quota. Quota resets daily, so a 24h TTL means a whole
+// day of browsing the same categories stays free.
 const CACHE_KEY = "questward.ytcache.v1";
-const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
-const CACHE_MAX_ENTRIES = 150;
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const CACHE_MAX_ENTRIES = 400;
 
 type CacheStore = Record<string, { t: number; d: unknown }>;
 
