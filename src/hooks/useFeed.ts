@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Sample } from "../types";
 import { Feed } from "../lib/feed";
+import type { FilterThresholds } from "../lib/filters";
 
 const MIN_BUFFER = 5;
 const FETCH_BATCH = 8;
@@ -21,9 +22,10 @@ interface Options {
   mode: "live" | "demo";
   apiKey: string;
   isSeen: (videoId: string) => boolean;
+  filters: FilterThresholds;
 }
 
-export function useFeed({ category, mode, apiKey, isSeen }: Options): FeedController {
+export function useFeed({ category, mode, apiKey, isSeen, filters }: Options): FeedController {
   const [buffer, setBuffer] = useState<Sample[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,13 +72,15 @@ export function useFeed({ category, mode, apiKey, isSeen }: Options): FeedContro
       isSeen: (id) => isSeenRef.current(id),
       apiKey,
       mode,
+      filters,
     });
     setBuffer([]);
     setExhausted(false);
     setError(null);
     void refill();
+    // Rebuild when the category, mode, key, or any filter threshold changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, mode, apiKey]);
+  }, [category, mode, apiKey, filters.minDurationSec, filters.maxDurationSec, filters.minViews]);
 
   // Top up the buffer whenever it runs low.
   useEffect(() => {

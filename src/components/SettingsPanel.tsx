@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Settings } from "../types";
+import { formatDuration, formatViews } from "../lib/filters";
 
 interface Props {
   settings: Settings;
@@ -20,6 +21,38 @@ export default function SettingsPanel({
 }: Props) {
   const [connecting, setConnecting] = useState(false);
   const [connectError, setConnectError] = useState<string | null>(null);
+
+  // Local draft for the filter sliders — committed to global settings on
+  // release, so live mode doesn't re-fetch on every drag tick.
+  const [f, setF] = useState({
+    minDurationSec: settings.minDurationSec,
+    maxDurationSec: settings.maxDurationSec,
+    minViews: settings.minViews,
+  });
+  const fRef = useRef(f);
+  useEffect(() => {
+    const next = {
+      minDurationSec: settings.minDurationSec,
+      maxDurationSec: settings.maxDurationSec,
+      minViews: settings.minViews,
+    };
+    fRef.current = next;
+    setF(next);
+  }, [settings.minDurationSec, settings.maxDurationSec, settings.minViews]);
+
+  function drag(key: keyof typeof f, value: number) {
+    const next = { ...fRef.current, [key]: value };
+    fRef.current = next;
+    setF(next);
+  }
+  function commitFilters() {
+    const d = fRef.current;
+    onChange({
+      minDurationSec: Math.min(d.minDurationSec, d.maxDurationSec),
+      maxDurationSec: Math.max(d.minDurationSec, d.maxDurationSec),
+      minViews: d.minViews,
+    });
+  }
 
   async function connect() {
     setConnecting(true);
@@ -101,6 +134,71 @@ export default function SettingsPanel({
             />
             Auto-add “Yes” &amp; “Sort” to YouTube instantly (otherwise sync per playlist on demand)
           </label>
+        </section>
+
+        <section className="settings__card">
+          <h3>Feed filters</h3>
+          <p className="settings__hint">
+            Only surface tracks inside this length window and above this view count.
+            Adjusting these reshuffles the deck.
+          </p>
+
+          <div className="slider">
+            <div className="slider__top">
+              <span>Minimum length</span>
+              <span className="slider__val">{formatDuration(f.minDurationSec)}</span>
+            </div>
+            <input
+              className="slider__range"
+              type="range"
+              min={0}
+              max={900}
+              step={15}
+              value={f.minDurationSec}
+              onChange={(e) => drag("minDurationSec", +e.target.value)}
+              onPointerUp={commitFilters}
+              onKeyUp={commitFilters}
+              onTouchEnd={commitFilters}
+            />
+          </div>
+
+          <div className="slider">
+            <div className="slider__top">
+              <span>Maximum length</span>
+              <span className="slider__val">{formatDuration(f.maxDurationSec)}</span>
+            </div>
+            <input
+              className="slider__range"
+              type="range"
+              min={60}
+              max={3600}
+              step={30}
+              value={f.maxDurationSec}
+              onChange={(e) => drag("maxDurationSec", +e.target.value)}
+              onPointerUp={commitFilters}
+              onKeyUp={commitFilters}
+              onTouchEnd={commitFilters}
+            />
+          </div>
+
+          <div className="slider">
+            <div className="slider__top">
+              <span>Minimum views</span>
+              <span className="slider__val">{formatViews(f.minViews)}</span>
+            </div>
+            <input
+              className="slider__range"
+              type="range"
+              min={0}
+              max={5_000_000}
+              step={50_000}
+              value={f.minViews}
+              onChange={(e) => drag("minViews", +e.target.value)}
+              onPointerUp={commitFilters}
+              onKeyUp={commitFilters}
+              onTouchEnd={commitFilters}
+            />
+          </div>
         </section>
 
         <section className="settings__card">

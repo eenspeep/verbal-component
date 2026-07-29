@@ -1,10 +1,23 @@
 import type { Sample } from "../types";
 
 // Feed filters. A track must sit inside the duration window AND clear the view
-// threshold to appear in the deck. Tweak these three numbers to taste.
-export const MIN_DURATION_SEC = 2 * 60; // 2 minutes
-export const MAX_DURATION_SEC = 10 * 60; // 10 minutes
-export const MIN_VIEWS = 500_000; // half a million views
+// threshold to appear in the deck. These are the out-of-the-box defaults; the
+// live values are user-adjustable in Settings.
+export const DEFAULT_MIN_DURATION_SEC = 2 * 60; // 2 minutes
+export const DEFAULT_MAX_DURATION_SEC = 10 * 60; // 10 minutes
+export const DEFAULT_MIN_VIEWS = 500_000; // half a million views
+
+export interface FilterThresholds {
+  minDurationSec: number;
+  maxDurationSec: number;
+  minViews: number;
+}
+
+export const DEFAULT_FILTERS: FilterThresholds = {
+  minDurationSec: DEFAULT_MIN_DURATION_SEC,
+  maxDurationSec: DEFAULT_MAX_DURATION_SEC,
+  minViews: DEFAULT_MIN_VIEWS,
+};
 
 /** Parse an ISO-8601 duration (e.g. "PT4M13S", "PT1H2M", "PT45S") to seconds. */
 export function parseIsoDuration(iso: string | undefined): number {
@@ -16,11 +29,11 @@ export function parseIsoDuration(iso: string | undefined): number {
 }
 
 /** True when a sample is inside the duration window and above the view floor. */
-export function passesFilters(sample: Sample): boolean {
+export function passesFilters(sample: Sample, f: FilterThresholds): boolean {
   return (
-    sample.durationSec >= MIN_DURATION_SEC &&
-    sample.durationSec <= MAX_DURATION_SEC &&
-    sample.viewCount >= MIN_VIEWS
+    sample.durationSec >= f.minDurationSec &&
+    sample.durationSec <= f.maxDurationSec &&
+    sample.viewCount >= f.minViews
   );
 }
 

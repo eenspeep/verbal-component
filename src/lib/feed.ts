@@ -1,7 +1,7 @@
 import type { Sample } from "../types";
 import { searchVideos } from "./youtube";
 import { makeDemoSample } from "./demoData";
-import { passesFilters } from "./filters";
+import { passesFilters, type FilterThresholds } from "./filters";
 
 // The Feed produces an effectively endless stream of samples for a category.
 // In demo mode it fabricates cards on the fly. In live mode it cycles through a
@@ -32,6 +32,7 @@ export interface FeedDeps {
   isSeen: (videoId: string) => boolean;
   apiKey: string;
   mode: "live" | "demo";
+  filters: FilterThresholds;
 }
 
 export class Feed {
@@ -69,7 +70,7 @@ export class Feed {
     while (out.length < count && guard < count * 40) {
       guard++;
       const s = makeDemoSample(this.category, this.demoIndex++);
-      if (!this.deps.isSeen(s.videoId) && passesFilters(s)) out.push(s);
+      if (!this.deps.isSeen(s.videoId) && passesFilters(s, this.deps.filters)) out.push(s);
     }
     return out;
   }
@@ -89,6 +90,7 @@ export class Feed {
           this.deps.apiKey,
           query,
           this.category,
+          this.deps.filters,
           this.pageToken,
           ORDERS[this.orderIndex],
         );

@@ -45,7 +45,17 @@ export default function App() {
 
   const isSeen = useCallback((id: string) => state.seen.includes(id), [state.seen]);
 
-  const feed = useFeed({ category: state.category, mode, apiKey: settings.apiKey, isSeen });
+  const feed = useFeed({
+    category: state.category,
+    mode,
+    apiKey: settings.apiKey,
+    isSeen,
+    filters: {
+      minDurationSec: settings.minDurationSec,
+      maxDurationSec: settings.maxDurationSec,
+      minViews: settings.minViews,
+    },
+  });
 
   const activePlaylist = useMemo(
     () => state.playlists.find((p) => p.id === state.activePlaylistId) ?? null,

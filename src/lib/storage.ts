@@ -1,4 +1,5 @@
 import type { AppState, Settings } from "../types";
+import { DEFAULT_FILTERS } from "./filters";
 
 const STATE_KEY = "verbal-component.state.v1";
 const SETTINGS_KEY = "verbal-component.settings.v1";
@@ -18,6 +19,7 @@ export const defaultSettings: Settings = {
   apiKey: import.meta.env.VITE_YT_API_KEY ?? "",
   oauthClientId: import.meta.env.VITE_YT_OAUTH_CLIENT_ID ?? "",
   autoSync: false,
+  ...DEFAULT_FILTERS,
 };
 
 export function loadState(): AppState {

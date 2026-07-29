@@ -55,4 +55,8 @@ export interface Settings {
   oauthClientId: string;
   /** When true, a "Yes"/"Sort" immediately writes to YouTube (needs OAuth). */
   autoSync: boolean;
+  /** Feed filters: only show tracks inside this length window and above this view floor. */
+  minDurationSec: number;
+  maxDurationSec: number;
+  minViews: number;
 }

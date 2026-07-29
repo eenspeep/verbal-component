@@ -1,7 +1,7 @@
 import type { Sample } from "../types";
 import { generateKeywords } from "./keywords";
 import { getAccessToken } from "./google";
-import { parseIsoDuration, passesFilters } from "./filters";
+import { parseIsoDuration, passesFilters, type FilterThresholds } from "./filters";
 
 // YouTube Data API v3 REST helpers. Search uses an API key; playlist writes use
 // an OAuth access token. See the README for how to obtain both.
@@ -44,6 +44,7 @@ export async function searchVideos(
   apiKey: string,
   query: string,
   category: string,
+  filters: FilterThresholds,
   pageToken?: string,
   order = "relevance",
 ): Promise<SearchPage> {
@@ -103,7 +104,7 @@ export async function searchVideos(
       sample.viewCount = d.viewCount;
     }
   }
-  const filtered = samples.filter(passesFilters);
+  const filtered = samples.filter((s) => passesFilters(s, filters));
 
   return { samples: filtered, nextPageToken: data.nextPageToken };
 }

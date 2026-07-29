@@ -987,6 +987,29 @@ button {
   border-color: rgba(255, 93, 108, 0.3);
 }
 
+.slider {
+  margin-top: 14px;
+}
+.slider__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.slider__val {
+  color: var(--gold);
+  font-weight: 800;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.slider__range {
+  width: 100%;
+  accent-color: var(--purple);
+  cursor: pointer;
+}
+
 /* ---------------- Toast + hint bar ---------------- */
 .toast {
   position: fixed;
