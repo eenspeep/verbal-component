@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Sample } from "../types";
 import KeywordChips from "./KeywordChips";
 import CoverArt from "./CoverArt";
+import CardPlayer from "./CardPlayer";
 import { demoListenUrl } from "../lib/demoData";
 import { formatDuration, formatViews } from "../lib/filters";
 
@@ -14,6 +15,10 @@ interface Props {
   depth: number;
   /** Set by buttons/keyboard to fly the top card out programmatically. */
   trigger?: SwipeDir | null;
+  /** When true, the top card starts playing as soon as it lands. */
+  autoplay: boolean;
+  /** Playback volume, 0–100. */
+  volume: number;
   onSwipe: (dir: SwipeDir, sample: Sample) => void;
 }
 
@@ -30,17 +35,19 @@ function dirFrom(x: number, y: number): SwipeDir | null {
   return null;
 }
 
-export default function SwipeCard({ sample, active, depth, trigger, onSwipe }: Props) {
+export default function SwipeCard({ sample, active, depth, trigger, autoplay, volume, onSwipe }: Props) {
+  const playable = sample.source === "live";
   const [drag, setDrag] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying] = useState(active && autoplay && playable);
   const exitingRef = useRef<SwipeDir | null>(null);
   const startRef = useRef<{ x: number; y: number } | null>(null);
 
-  // A new top card should start fresh (no leftover playing state).
+  // A new top card should start fresh; autoplay starts it the moment it lands.
   useEffect(() => {
     if (!active) setPlaying(false);
-  }, [active]);
+    else if (autoplay && playable) setPlaying(true);
+  }, [active, autoplay, playable]);
 
   // Buttons and keyboard shortcuts fly the top card out via `trigger`.
   useEffect(() => {
@@ -106,8 +113,6 @@ export default function SwipeCard({ sample, active, depth, trigger, onSwipe }: P
   const noOp = Math.max(0, Math.min(1, -drag.x / THRESH_X));
   const thinkOp = Math.max(0, Math.min(1, -drag.y / THRESH_Y));
 
-  const playable = sample.source === "live";
-
   return (
     <div
       className={`card ${active ? "card--active" : ""} ${dragging ? "card--dragging" : ""}`}
@@ -139,13 +144,7 @@ export default function SwipeCard({ sample, active, depth, trigger, onSwipe }: P
 
       <div className="card__media" data-nodrag={active && playing ? "" : undefined}>
         {active && playable && playing ? (
-          <iframe
-            className="card__player"
-            src={`https://www.youtube.com/embed/${sample.videoId}?rel=0&autoplay=1&modestbranding=1`}
-            title={sample.title}
-            allow="autoplay; encrypted-media"
-            allowFullScreen
-          />
+          <CardPlayer videoId={sample.videoId} volume={volume} />
         ) : sample.thumbnail ? (
           <div className="card__thumbwrap">
             <img className="card__thumb" src={sample.thumbnail} alt="" draggable={false} />

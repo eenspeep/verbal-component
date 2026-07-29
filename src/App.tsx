@@ -189,6 +189,10 @@ export default function App() {
               category={state.category}
               error={feed.error}
               exhausted={feed.exhausted}
+              autoplay={settings.autoplay}
+              volume={settings.volume}
+              onAutoplayChange={(v) => setSettings((s) => ({ ...s, autoplay: v }))}
+              onVolumeChange={(v) => setSettings((s) => ({ ...s, volume: v }))}
               onRetry={feed.retry}
               onDecide={handleDecide}
               onSortInto={handleSortInto}

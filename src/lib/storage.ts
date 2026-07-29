@@ -19,6 +19,8 @@ export const defaultSettings: Settings = {
   apiKey: import.meta.env.VITE_YT_API_KEY ?? "",
   oauthClientId: import.meta.env.VITE_YT_OAUTH_CLIENT_ID ?? "",
   autoSync: false,
+  autoplay: false,
+  volume: 70,
   ...DEFAULT_FILTERS,
 };
 

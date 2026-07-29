@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Playlist, Sample } from "../types";
 import SwipeCard, { type SwipeDir } from "./SwipeCard";
 import ActionBar from "./ActionBar";
@@ -11,6 +11,10 @@ interface Props {
   category: string;
   error: string | null;
   exhausted: boolean;
+  autoplay: boolean;
+  volume: number;
+  onAutoplayChange: (v: boolean) => void;
+  onVolumeChange: (v: number) => void;
   onRetry: () => void;
   onDecide: (dir: SwipeDir, sample: Sample) => void;
   onSortInto: (sample: Sample, playlistId: string) => void;
@@ -26,6 +30,10 @@ export default function CardDeck({
   category,
   error,
   exhausted,
+  autoplay,
+  volume,
+  onAutoplayChange,
+  onVolumeChange,
   onRetry,
   onDecide,
   onSortInto,
@@ -33,6 +41,17 @@ export default function CardDeck({
 }: Props) {
   const [trigger, setTrigger] = useState<SwipeDir | null>(null);
   const [sortOpen, setSortOpen] = useState(false);
+  const lastVolume = useRef(volume || 70);
+
+  function toggleMute() {
+    if (volume > 0) {
+      lastVolume.current = volume;
+      onVolumeChange(0);
+    } else {
+      onVolumeChange(lastVolume.current || 70);
+    }
+  }
+  const volIcon = volume === 0 ? "🔇" : volume < 50 ? "🔉" : "🔊";
 
   const top = buffer[0] ?? null;
   const activePlaylist = playlists.find((p) => p.id === activePlaylistId) ?? null;
@@ -73,6 +92,33 @@ export default function CardDeck({
 
   return (
     <div className="deck-wrap">
+      <div className="playbar">
+        <label className="playbar__auto">
+          <input
+            type="checkbox"
+            checked={autoplay}
+            onChange={(e) => onAutoplayChange(e.target.checked)}
+          />
+          Autoplay
+        </label>
+        <div className="playbar__vol">
+          <button className="playbar__mute" onClick={toggleMute} aria-label="Mute / unmute" title="Mute / unmute">
+            {volIcon}
+          </button>
+          <input
+            className="playbar__slider"
+            type="range"
+            min={0}
+            max={100}
+            step={1}
+            value={volume}
+            onChange={(e) => onVolumeChange(+e.target.value)}
+            aria-label="Volume"
+          />
+          <span className="playbar__volnum">{volume}</span>
+        </div>
+      </div>
+
       <div className="deck">
         {buffer.slice(0, VISIBLE).map((sample, i) => (
           <SwipeCard
@@ -81,6 +127,8 @@ export default function CardDeck({
             active={i === 0}
             depth={i}
             trigger={i === 0 ? trigger : null}
+            autoplay={autoplay}
+            volume={volume}
             onSwipe={handleSwipe}
           />
         )).reverse()}

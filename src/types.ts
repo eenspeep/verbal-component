@@ -59,4 +59,8 @@ export interface Settings {
   minDurationSec: number;
   maxDurationSec: number;
   minViews: number;
+  /** Start playing the top card automatically when it lands. */
+  autoplay: boolean;
+  /** Playback volume, 0–100. */
+  volume: number;
 }
