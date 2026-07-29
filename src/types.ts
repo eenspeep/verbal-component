@@ -10,6 +10,10 @@ export interface Sample {
   thumbnail: string;
   /** Exactly three auto-generated vibe keywords, shown before you listen. */
   keywords: [string, string, string];
+  /** Length in seconds (from the YouTube API, or synthetic in demo mode). */
+  durationSec: number;
+  /** View count (from the YouTube API, or synthetic in demo mode). */
+  viewCount: number;
   /** Which category search surfaced this sample. */
   category: string;
   source: "live" | "demo";

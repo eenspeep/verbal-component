@@ -1,6 +1,7 @@
 import type { Sample } from "../types";
 import { generateKeywords } from "./keywords";
 import { getAccessToken } from "./google";
+import { parseIsoDuration, passesFilters } from "./filters";
 
 // YouTube Data API v3 REST helpers. Search uses an API key; playlist writes use
 // an OAuth access token. See the README for how to obtain both.
@@ -85,12 +86,63 @@ export async function searchVideos(
         channelTitle: decodeEntities(s.channelTitle ?? ""),
         thumbnail,
         keywords: generateKeywords({ title, description, category }),
+        durationSec: 0,
+        viewCount: 0,
         category,
         source: "live" as const,
       };
     });
 
-  return { samples, nextPageToken: data.nextPageToken };
+  // Enrich with duration + view count (search.list omits both), then apply the
+  // duration/view filters. One videos.list call covers the whole page (1 unit).
+  const details = await fetchVideoDetails(apiKey, samples.map((s) => s.videoId));
+  for (const sample of samples) {
+    const d = details.get(sample.videoId);
+    if (d) {
+      sample.durationSec = d.durationSec;
+      sample.viewCount = d.viewCount;
+    }
+  }
+  const filtered = samples.filter(passesFilters);
+
+  return { samples: filtered, nextPageToken: data.nextPageToken };
+}
+
+interface VideosListResponse {
+  items?: Array<{
+    id?: string;
+    contentDetails?: { duration?: string };
+    statistics?: { viewCount?: string };
+  }>;
+  error?: { message?: string };
+}
+
+/** Look up duration (seconds) and view count for a batch of video ids. */
+async function fetchVideoDetails(
+  apiKey: string,
+  ids: string[],
+): Promise<Map<string, { durationSec: number; viewCount: number }>> {
+  const out = new Map<string, { durationSec: number; viewCount: number }>();
+  if (ids.length === 0) return out;
+
+  const params = new URLSearchParams({
+    key: apiKey,
+    part: "contentDetails,statistics",
+    id: ids.join(","),
+    maxResults: "50",
+  });
+  const resp = await fetch(`${API}/videos?${params.toString()}`);
+  const data = (await resp.json()) as VideosListResponse;
+  if (!resp.ok || data.error) return out; // On failure, leave details empty (items get filtered out).
+
+  for (const it of data.items ?? []) {
+    if (!it.id) continue;
+    out.set(it.id, {
+      durationSec: parseIsoDuration(it.contentDetails?.duration),
+      viewCount: Number(it.statistics?.viewCount ?? 0) || 0,
+    });
+  }
+  return out;
 }
 
 async function ytFetch(

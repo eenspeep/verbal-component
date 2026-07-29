@@ -26,8 +26,6 @@ const CHANNELS = [
   "Realm Reverb", "Ambient Worlds Tabletop",
 ];
 
-const LENGTHS = ["1 Hour", "30 Min", "45 Min", "2 Hours", "Extended", "Seamless Loop"];
-
 // A small deterministic PRNG so a given seed always yields the same card.
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
@@ -65,10 +63,23 @@ export function makeDemoSample(category: string, index: number): Sample {
   const scene = pick(rng, SCENES);
   const descriptor = pick(rng, DESCRIPTORS);
   const channel = pick(rng, CHANNELS);
-  const length = pick(rng, LENGTHS);
 
-  const title = `${catCap} ${scene} — ${descriptor} (${length})`;
+  const title = `${catCap} ${scene} — ${descriptor}`;
   const description = pick(rng, DESC_SNIPPETS);
+
+  // Synthetic length/views: mostly inside the 2–10 min / 500k+ window so the
+  // deck flows, with a minority outside it so the filters are visibly at work.
+  const dr = rng();
+  const durationSec =
+    dr < 0.15
+      ? 30 + Math.floor(rng() * 80) // 0:30–1:50 (too short)
+      : dr < 0.25
+      ? 700 + Math.floor(rng() * 2600) // 11–55 min (too long)
+      : 125 + Math.floor(rng() * 470); // ~2:05–9:55 (passes)
+  const viewCount =
+    rng() < 0.2
+      ? 10_000 + Math.floor(rng() * 480_000) // below 500k
+      : 500_000 + Math.floor(rng() * 8_000_000); // 0.5M–8.5M
 
   return {
     videoId: `demo:${catSeed}:${index}`,
@@ -77,6 +88,8 @@ export function makeDemoSample(category: string, index: number): Sample {
     description,
     thumbnail: "",
     keywords: generateKeywords({ title, description, category: cat }),
+    durationSec,
+    viewCount,
     category: cat,
     source: "demo",
   };

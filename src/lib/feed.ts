@@ -1,6 +1,7 @@
 import type { Sample } from "../types";
 import { searchVideos } from "./youtube";
 import { makeDemoSample } from "./demoData";
+import { passesFilters } from "./filters";
 
 // The Feed produces an effectively endless stream of samples for a category.
 // In demo mode it fabricates cards on the fly. In live mode it cycles through a
@@ -65,10 +66,10 @@ export class Feed {
   private loadDemo(count: number): Sample[] {
     const out: Sample[] = [];
     let guard = 0;
-    while (out.length < count && guard < count * 20) {
+    while (out.length < count && guard < count * 40) {
       guard++;
       const s = makeDemoSample(this.category, this.demoIndex++);
-      if (!this.deps.isSeen(s.videoId)) out.push(s);
+      if (!this.deps.isSeen(s.videoId) && passesFilters(s)) out.push(s);
     }
     return out;
   }

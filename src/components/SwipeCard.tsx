@@ -3,6 +3,7 @@ import type { Sample } from "../types";
 import KeywordChips from "./KeywordChips";
 import CoverArt from "./CoverArt";
 import { demoListenUrl } from "../lib/demoData";
+import { formatDuration, formatViews } from "../lib/filters";
 
 export type SwipeDir = "yes" | "no" | "thinking";
 
@@ -176,7 +177,12 @@ export default function SwipeCard({ sample, active, depth, trigger, onSwipe }: P
         <h2 className="card__title" title={sample.title}>
           {sample.title}
         </h2>
-        <p className="card__channel">{sample.channelTitle}</p>
+        <p className="card__channel">
+          {sample.channelTitle}
+          <span className="card__stats">
+            {formatDuration(sample.durationSec)} · {formatViews(sample.viewCount)} views
+          </span>
+        </p>
         {sample.source === "demo" && (
           <p className="card__demoflag">Demo card — add an API key for real, playable tracks</p>
         )}
