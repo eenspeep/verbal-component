@@ -1,4 +1,4 @@
-# 🎲 Questward
+# 🎲 Verbal Component
 
 A **Tinder-style swipe interface for building tabletop-RPG playlists on YouTube Music.**
 Search a vibe — `pokemon`, `medieval`, `relaxed`, `boss battle` — and get an
@@ -61,14 +61,14 @@ credentials so the playlists are created on **your** account.
 1. Open the [Google Cloud Console](https://console.cloud.google.com/) and create (or pick) a project.
 2. **APIs & Services → Library →** enable **YouTube Data API v3**.
 3. **APIs & Services → Credentials → Create credentials → API key.**
-4. Paste it into Questward's **Settings → API key**. The badge flips to **LIVE**.
+4. Paste it into Verbal Component's **Settings → API key**. The badge flips to **LIVE**.
 
 ### 2. OAuth Client ID — enables syncing playlists to YouTube Music
 
 1. **APIs & Services → Credentials → Create credentials → OAuth client ID.**
 2. Application type: **Web application**.
 3. Under **Authorized JavaScript origins**, add the exact origin where you run
-   Questward (Settings shows it for you — e.g. `http://localhost:5173`, or your
+   Verbal Component (Settings shows it for you — e.g. `http://localhost:5173`, or your
    deployed URL).
 4. Paste the client ID into **Settings → OAuth Client ID**, then **Connect Google**.
 5. While your OAuth consent screen is in "testing", add your Google account as a
@@ -86,7 +86,7 @@ Settings to write each Yes/Sort through immediately instead.
 ### A note on quota
 
 The free YouTube Data API tier is ~10,000 units/day, and each search costs 100
-units (≈100 searches/day). Questward paginates and rotates through query variants,
+units (≈100 searches/day). Verbal Component paginates and rotates through query variants,
 so a single search term keeps yielding fresh tracks for a long time before it needs
 another API call. If you hit the ceiling, the deck tells you and you can resume the
 next day.

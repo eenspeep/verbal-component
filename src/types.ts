@@ -1,4 +1,4 @@
-// Core domain types for Questward.
+// Core domain types for Verbal Component.
 
 export interface Sample {
   /** YouTube video id (real in live mode; a synthetic "demo:..." id in demo mode). */

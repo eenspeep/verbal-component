@@ -20,7 +20,7 @@ export default function TopBar({ view, setView, playlistCount, thinkingCount, li
     <header className="topbar">
       <div className="topbar__brand">
         <span className="topbar__logo">🎲</span>
-        <span className="topbar__name">Questward</span>
+        <span className="topbar__name">Verbal Component</span>
         <span className={`topbar__mode ${live ? "topbar__mode--live" : ""}`}>
           {live ? "LIVE" : "DEMO"}
         </span>

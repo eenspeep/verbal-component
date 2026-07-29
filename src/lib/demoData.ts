@@ -21,7 +21,7 @@ const DESCRIPTORS = [
 ];
 
 const CHANNELS = [
-  "Hearthfire Ambience", "Tabletop Audio Vault", "Questward Sessions", "Bardic Loops",
+  "Hearthfire Ambience", "Tabletop Audio Vault", "Component Pouch Sessions", "Bardic Loops",
   "The DM's Toolkit", "Dungeon Synth Depot", "Twelve-Sided Sound", "Lantern & Lyre",
   "Realm Reverb", "Ambient Worlds Tabletop",
 ];

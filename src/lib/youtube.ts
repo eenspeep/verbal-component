@@ -120,7 +120,7 @@ async function ytFetch(
 export async function createYoutubePlaylist(
   clientId: string,
   title: string,
-  description = "Curated with Questward.",
+  description = "Curated with Verbal Component.",
 ): Promise<string> {
   const token = await getAccessToken(clientId);
   const data = await ytFetch("playlists?part=snippet,status", token, {

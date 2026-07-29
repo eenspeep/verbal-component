@@ -72,7 +72,7 @@ export default function App() {
           ytId = await createYoutubePlaylist(
             settings.oauthClientId,
             p.name,
-            `Curated with Questward — ${p.name}`,
+            `Curated with Verbal Component — ${p.name}`,
           );
         }
         const pending = liveItems.filter((i) => !p.syncedVideoIds.includes(i.videoId));

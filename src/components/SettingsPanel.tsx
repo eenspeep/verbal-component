@@ -38,7 +38,7 @@ export default function SettingsPanel({
       <div className="panel__head">
         <h2>Settings</h2>
         <p className="panel__sub">
-          Questward runs in <strong>demo mode</strong> out of the box. Add your own Google
+          Verbal Component runs in <strong>demo mode</strong> out of the box. Add your own Google
           credentials to switch on real search, playback, and playlist syncing.
         </p>
       </div>
@@ -67,7 +67,7 @@ export default function SettingsPanel({
         <section className="settings__card">
           <h3>2 · OAuth Client ID <span className="settings__opt">(for syncing playlists)</span></h3>
           <p className="settings__hint">
-            Lets Questward create playlists on <em>your</em> account (they show up in YouTube
+            Lets Verbal Component create playlists on <em>your</em> account (they show up in YouTube
             Music). Create an <em>OAuth 2.0 Client ID</em> of type “Web application”, and add this
             app’s URL to “Authorized JavaScript origins”.
           </p>
@@ -120,7 +120,7 @@ export default function SettingsPanel({
           <button
             className="btn btn--danger"
             onClick={() => {
-              if (confirm("Reset all local Questward data in this browser?")) onReset();
+              if (confirm("Reset all local Verbal Component data in this browser?")) onReset();
             }}
           >
             Reset local data

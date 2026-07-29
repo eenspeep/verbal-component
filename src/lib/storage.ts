@@ -1,7 +1,7 @@
 import type { AppState, Settings } from "../types";
 
-const STATE_KEY = "questward.state.v1";
-const SETTINGS_KEY = "questward.settings.v1";
+const STATE_KEY = "verbal-component.state.v1";
+const SETTINGS_KEY = "verbal-component.settings.v1";
 
 export const emptyState: AppState = {
   playlists: [],
