@@ -30,6 +30,10 @@ jobs:
       - name: Configure Pages
         id: pages
         uses: actions/configure-pages@v5
+        with:
+          # Create the Pages site automatically on first run (now that the repo
+          # is public) instead of requiring a manual Settings toggle.
+          enablement: true
 
       - run: npm ci
 
