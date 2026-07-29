@@ -8,6 +8,59 @@ import { parseIsoDuration, passesFilters, type FilterThresholds } from "./filter
 
 const API = "https://www.googleapis.com/youtube/v3";
 
+// --- Response cache -------------------------------------------------------
+// GET responses (search + video details) are cached in localStorage so that
+// reloading, re-browsing a category, or re-filtering doesn't re-spend the
+// (limited) daily search quota. Quota resets daily, so a 12h TTL is safe.
+const CACHE_KEY = "questward.ytcache.v1";
+const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
+const CACHE_MAX_ENTRIES = 150;
+
+type CacheStore = Record<string, { t: number; d: unknown }>;
+
+/** Cache key for a request URL, with the API key stripped out (never stored). */
+function cacheKeyFor(url: string): string {
+  return url.replace(/([?&])key=[^&]*/, "$1key=");
+}
+
+function readCache(): CacheStore {
+  try {
+    return JSON.parse(localStorage.getItem(CACHE_KEY) || "{}") as CacheStore;
+  } catch {
+    return {};
+  }
+}
+
+function writeCache(url: string, data: unknown): void {
+  try {
+    const store = readCache();
+    store[cacheKeyFor(url)] = { t: Date.now(), d: data };
+    const keys = Object.keys(store);
+    if (keys.length > CACHE_MAX_ENTRIES) {
+      keys.sort((a, b) => store[a].t - store[b].t);
+      for (const k of keys.slice(0, keys.length - CACHE_MAX_ENTRIES)) delete store[k];
+    }
+    localStorage.setItem(CACHE_KEY, JSON.stringify(store));
+  } catch {
+    // Storage full/unavailable — caching is best-effort.
+  }
+}
+
+/**
+ * GET JSON with a localStorage cache. On a fresh cache hit, no network request
+ * (and no quota) is spent. Only successful, error-free responses are cached.
+ */
+async function cachedGet<T>(url: string): Promise<{ data: T; ok: boolean; status: number }> {
+  const hit = readCache()[cacheKeyFor(url)];
+  if (hit && Date.now() - hit.t < CACHE_TTL_MS) {
+    return { data: hit.d as T, ok: true, status: 200 };
+  }
+  const resp = await fetch(url);
+  const data = (await resp.json()) as T & { error?: unknown };
+  if (resp.ok && !data.error) writeCache(url, data);
+  return { data, ok: resp.ok, status: resp.status };
+}
+
 interface SearchListResponse {
   nextPageToken?: string;
   items?: Array<{
@@ -53,22 +106,23 @@ export async function searchVideos(
     part: "snippet",
     type: "video",
     q: query,
-    maxResults: "25",
+    maxResults: "50",
     videoEmbeddable: "true",
     order,
     safeSearch: "moderate",
   });
   if (pageToken) params.set("pageToken", pageToken);
 
-  const resp = await fetch(`${API}/search?${params.toString()}`);
-  const data = (await resp.json()) as SearchListResponse;
+  const { data, ok, status } = await cachedGet<SearchListResponse>(
+    `${API}/search?${params.toString()}`,
+  );
 
-  if (!resp.ok || data.error) {
+  if (!ok || data.error) {
     const reason = data.error?.errors?.[0]?.reason;
     if (reason === "quotaExceeded") {
       throw new Error("YouTube API daily quota exceeded. Try again tomorrow or use another key.");
     }
-    throw new Error(data.error?.message || `YouTube search failed (${resp.status}).`);
+    throw new Error(data.error?.message || `YouTube search failed (${status}).`);
   }
 
   const samples: Sample[] = (data.items ?? [])
@@ -132,9 +186,8 @@ async function fetchVideoDetails(
     id: ids.join(","),
     maxResults: "50",
   });
-  const resp = await fetch(`${API}/videos?${params.toString()}`);
-  const data = (await resp.json()) as VideosListResponse;
-  if (!resp.ok || data.error) return out; // On failure, leave details empty (items get filtered out).
+  const { data, ok } = await cachedGet<VideosListResponse>(`${API}/videos?${params.toString()}`);
+  if (!ok || data.error) return out; // On failure, leave details empty (items get filtered out).
 
   for (const it of data.items ?? []) {
     if (!it.id) continue;
